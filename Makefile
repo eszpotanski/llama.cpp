@@ -47,7 +47,7 @@ OPT = -O3
 endif
 CFLAGS   = -I.              $(OPT) -std=c11   -fPIC
 CXXFLAGS = -I. -I./examples $(OPT) -std=c++11 -fPIC
-LDFLAGS  =
+LDFLAGS  = -L/.singularity.d/libs
 
 ifdef LLAMA_DEBUG
 	CFLAGS   += -O0 -g
@@ -270,14 +270,14 @@ endif # LLAMA_CUBLAS
 
 ifdef LLAMA_CLBLAST
 
-	CFLAGS   += -DGGML_USE_CLBLAST $(shell pkg-config --cflags clblast OpenCL)
-	CXXFLAGS += -DGGML_USE_CLBLAST $(shell pkg-config --cflags clblast OpenCL)
+	CFLAGS   += -DGGML_USE_CLBLAST $(shell pkg-config --cflags clblast)
+	CXXFLAGS += -DGGML_USE_CLBLAST $(shell pkg-config --cflags clblast)
 
 	# Mac provides OpenCL as a framework
 	ifeq ($(UNAME_S),Darwin)
 		LDFLAGS += -lclblast -framework OpenCL
 	else
-		LDFLAGS += $(shell pkg-config --libs clblast OpenCL)
+		LDFLAGS += $(shell pkg-config --libs clblast) -lOpenCL
 	endif
 	OBJS    += ggml-opencl.o
 

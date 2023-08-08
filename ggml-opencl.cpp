@@ -913,14 +913,19 @@ static cl_program build_program_from_source(cl_context ctx, cl_device_id dev, co
                                "-DQK4_0=32 -DQR4_0=2 -DQK4_1=32 -DQR4_1=2 -DQK5_0=32 -DQR5_0=2 -DQK5_1=32 -DQR5_1=2 -DQK8_0=32 -DQR8_0=1 "
                                "-DQK_K=256 -DK_QUANTS_PER_ITERATION=" + std::to_string(K_QUANTS_PER_ITERATION);
 
-    err = clBuildProgram(p, 0, NULL, compile_opts.c_str(), NULL, NULL);
+    cl_device_id devices[1];
+    devices[0] = dev;
+    err = clBuildProgram(p, 1, devices, compile_opts.c_str(), NULL, NULL);
     if(err < 0) {
+        cl_build_status status;
+        cl_int e = clGetProgramBuildInfo(p, dev, CL_PROGRAM_BUILD_STATUS, sizeof(status), &status, &log_size);
+        fprintf(stderr, "ggml_opencl: build status: %d %d\n", e, status);
 
         clGetProgramBuildInfo(p, dev, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
         program_log = (char*) malloc(log_size + 1);
         program_log[log_size] = '\0';
         clGetProgramBuildInfo(p, dev, CL_PROGRAM_BUILD_LOG, log_size + 1, program_log, NULL);
-        fprintf(stderr, "ggml_opencl: kernel compile error:\n\n%s\n", program_log);
+        fprintf(stderr, "ggml_opencl: kernel compile error:\n\n%d %d\n", err, log_size);
         free(program_log);
         exit(1);
     }
